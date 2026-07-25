@@ -30,6 +30,15 @@ if (empty($model)) {
     json_error('请选择绑定的模型');
 }
 
+// 检查积分是否足够（声音复刻消耗 50 积分）
+define('CLONE_POINTS_COST', 50);
+$stmt = $db->prepare('SELECT points FROM users WHERE id = ?');
+$stmt->execute([$userId]);
+$userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$userRow || (float) $userRow['points'] < CLONE_POINTS_COST) {
+    json_error('积分不足，声音复刻需要 ' . CLONE_POINTS_COST . ' 积分，当前剩余 ' . ($userRow['points'] ?? '0') . ' 积分');
+}
+
 // 处理音频：优先使用上传文件，其次使用 URL
 if (empty($audioUrl) && isset($_FILES['audio_file'])) {
     $file = $_FILES['audio_file'];
@@ -112,13 +121,24 @@ try {
 
     Logger::info('声音复刻成功，voice_id=' . $voiceId);
 
+    // 扣除积分
+    $stmt = $db->prepare('UPDATE users SET points = points - ? WHERE id = ?');
+    $stmt->execute([CLONE_POINTS_COST, $userId]);
+
+    // 查询剩余积分
+    $stmt = $db->prepare('SELECT points FROM users WHERE id = ?');
+    $stmt->execute([$userId]);
+    $afterRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    $pointsRemain = $afterRow ? (float) $afterRow['points'] : 0;
+
     json_success([
-        'id'       => (int) $db->lastInsertId(),
-        'name'     => $name,
-        'voice_id' => $voiceId,
-        'model'    => $model,
-        'category' => 'clone',
-    ], '音色创建成功');
+        'id'            => (int) $db->lastInsertId(),
+        'name'          => $name,
+        'voice_id'      => $voiceId,
+        'model'         => $model,
+        'category'      => 'clone',
+        'points_remain' => $pointsRemain,
+    ], '音色创建成功（已扣除 ' . CLONE_POINTS_COST . ' 积分）');
 
 } catch (Exception $e) {
     Logger::error('声音复刻失败: ' . $e->getMessage());

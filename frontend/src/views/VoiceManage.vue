@@ -111,8 +111,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useTTSStore } from '../stores/tts'
+import { useAuthStore } from '../stores/auth'
 
 const ttsStore = useTTSStore()
+const authStore = useAuthStore()
 const showClonePanel = ref(false)
 const cloning = ref(false)
 const cloneError = ref('')
@@ -141,6 +143,54 @@ const userVoices = computed(() => ttsStore.userVoices)
 const canClone = computed(() => {
   return cloneForm.name && cloneForm.model && cloneForm.text && (cloneForm.file || recordedBlob.value)
 })
+
+// WebM → WAV 转换（浏览器录音为 WebM，后端仅支持 WAV/MP3/M4A）
+function writeString(view, offset, str) {
+  for (let i = 0; i < str.length; i++) {
+    view.setUint8(offset + i, str.charCodeAt(i))
+  }
+}
+
+async function webmToWav(blob) {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+  const arrayBuffer = await blob.arrayBuffer()
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+  audioContext.close()
+
+  const numChannels = audioBuffer.numberOfChannels
+  const sampleRate = audioBuffer.sampleRate
+  const bitsPerSample = 16
+  const data = audioBuffer.getChannelData(0)
+  const dataLength = data.length * (bitsPerSample / 8)
+  const buffer = new ArrayBuffer(44 + dataLength)
+  const view = new DataView(buffer)
+
+  // RIFF header
+  writeString(view, 0, 'RIFF')
+  view.setUint32(4, 36 + dataLength, true)
+  writeString(view, 8, 'WAVE')
+  // fmt chunk
+  writeString(view, 12, 'fmt ')
+  view.setUint32(16, 16, true)          // chunk size
+  view.setUint16(20, 1, true)           // PCM format
+  view.setUint16(22, numChannels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true)
+  view.setUint16(32, numChannels * bitsPerSample / 8, true)
+  view.setUint16(34, bitsPerSample, true)
+  // data chunk
+  writeString(view, 36, 'data')
+  view.setUint32(40, dataLength, true)
+
+  let offset = 44
+  for (let i = 0; i < data.length; i++) {
+    const sample = Math.max(-1, Math.min(1, data[i]))
+    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true)
+    offset += 2
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' })
+}
 
 // 录音
 async function startRecording() {
@@ -189,9 +239,13 @@ function retryRecord() {
   recordedDuration.value = 0
 }
 
-function useRecordedAudio() {
-  cloneForm.file = new File([recordedBlob.value], 'recording.webm', { type: 'audio/webm' })
-  showClonePanel.value = false // 设为false让下面的赋值触发watch，这里直接继续
+async function useRecordedAudio() {
+  // 将 WebM 录音转为 WAV 格式（后端仅支持 WAV/MP3/M4A）
+  const wavBlob = await webmToWav(recordedBlob.value)
+  cloneForm.file = new File([wavBlob], 'recording.wav', { type: 'audio/wav' })
+  // 清除录音预览UI，显示文件选择状态
+  recordedBlob.value = null
+  recordedAudioUrl.value = ''
 }
 
 function onFileChange(e) {
@@ -201,6 +255,8 @@ function onFileChange(e) {
 }
 
 async function doClone() {
+  if (!confirm('声音复刻成功后将扣除 50 积分，是否确认开始复刻？')) return
+
   cloneError.value = ''
   cloning.value = true
   try {
@@ -209,9 +265,12 @@ async function doClone() {
     fd.append('model', cloneForm.model)
     fd.append('audio_file', cloneForm.file)
     await ttsStore.cloneVoice(fd)
+    // 刷新用户积分
+    await authStore.fetchProfile()
     // 重置表单
     cloneForm.name = ''
     cloneForm.file = null
+    cloneForm.model = cloneModels.value.length > 0 ? cloneModels.value[0].key : ''
     recordedBlob.value = null
     recordedAudioUrl.value = ''
     showClonePanel.value = false
@@ -237,6 +296,10 @@ onMounted(async () => {
   try {
     await ttsStore.fetchSystemVoices()
     await ttsStore.fetchUserVoices()
+    // 默认选中第一个模型
+    if (cloneModels.value.length > 0 && !cloneForm.model) {
+      cloneForm.model = cloneModels.value[0].key
+    }
   } catch (e) { /* ignore */ }
 })
 </script>

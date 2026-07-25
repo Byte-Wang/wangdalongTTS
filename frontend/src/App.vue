@@ -2,11 +2,8 @@
   <div id="app">
     <nav class="navbar">
       <router-link to="/" class="navbar-brand">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2 10v3a6 6 0 006 6h2a6 6 0 006-6v-3a6 6 0 00-6-6H8a6 6 0 00-6 6z"/>
-          <path d="M12 17v4M10 21h4"/>
-        </svg>
-        语音合成平台
+        <img src="/logo.png" alt="logo" width="24" height="24" />
+        王大龙语音合成工具
       </router-link>
 
       <ul v-if="auth.isLoggedIn" class="navbar-nav">
