@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../../lib/response.php';
 require_once __DIR__ . '/../../lib/db.php';
+require_once __DIR__ . '/../../lib/mailer.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -37,19 +38,23 @@ $code = random_int(100000, 999999);
 $stmt = $db->prepare('INSERT INTO email_verifications (email, code, type, expires_at) VALUES (?, ?, ?, DATE_ADD(?, INTERVAL 10 MINUTE))');
 $stmt->execute([$email, $code, $type, $now]);
 
-// 发送邮件（使用 PHP mail 函数，生产环境建议使用 SMTP 发送）
-$subject = $type === 'register' ? '【语音合成平台】注册验证码' : '【语音合成平台】登录验证码';
-$message = "您的验证码是：{$code}，有效期10分钟。如非本人操作请忽略。";
-$headers = 'From: noreply@tts-platform.com' . "\r\n" .
-           'Content-Type: text/plain; charset=UTF-8';
+// 发送邮件（使用 SMTP 服务）
+$subject = $type === 'register' ? '【王大龙语音合成工具】注册验证码' : '【王大龙语音合成工具】登录验证码';
+$body    = "您的验证码是：<b>{$code}</b>，有效期10分钟。如非本人操作请忽略。";
 
-$mailSent = @mail($email, $subject, $message, $headers);
+try {
+    $mailer   = new Mailer();
+    $mailSent = $mailer->send($email, $subject, $body);
+} catch (Exception $e) {
+    error_log("SMTP 发送失败: " . $e->getMessage());
+    $mailSent = false;
+}
 
 // 开发环境下将验证码打印到日志
 error_log("验证码发送到 {$email}: {$code}");
 
 json_success([
-    'sent'   => $mailSent,
-    'code'   => $code, // 仅开发环境返回，生产应移除
-    'message' => $mailSent ? '验证码已发送' : '邮件发送失败，请检查服务器邮件配置',
+    'sent'    => $mailSent,
+    'code'    => $code, // 仅开发环境返回，生产应移除
+    'message' => $mailSent ? '验证码已发送' : '邮件发送失败，请检查邮件服务器配置',
 ]);
