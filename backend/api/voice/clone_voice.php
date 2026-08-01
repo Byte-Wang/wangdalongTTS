@@ -19,6 +19,18 @@ require_once __DIR__ . '/../../lib/logger.php';
 $userId = require_auth();
 $db     = DB::getInstance();
 
+// 克隆音色固定消耗 50 积分
+$cloneCost = 50;
+
+// 查询用户积分
+$stmt = $db->prepare('SELECT points FROM users WHERE id = ?');
+$stmt->execute([$userId]);
+$user = $stmt->fetch();
+
+if ((float) $user['points'] < $cloneCost) {
+    json_error('积分不足，当前剩余 ' . $user['points'] . ' 积分，克隆音色需要 ' . $cloneCost . ' 积分');
+}
+
 $name     = trim($_POST['name'] ?? '');
 $model    = trim($_POST['model'] ?? '');
 $audioUrl = trim($_POST['audio_url'] ?? '');
@@ -45,6 +57,9 @@ if (empty($audioUrl) && isset($_FILES['audio_file'])) {
     }
 
     $uploadDir = __DIR__ . '/../../uploads/voices/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
     $fileName  = 'clone_' . $userId . '_' . time() . '.' . $ext;
     $filePath  = $uploadDir . $fileName;
 
@@ -109,6 +124,10 @@ try {
     // 保存到数据库
     $stmt = $db->prepare('INSERT INTO voices (user_id, name, voice_id, model, category) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([$userId, $name, $voiceId, $model, 'clone']);
+
+    // 扣除积分
+    $stmt = $db->prepare('UPDATE users SET points = points - ? WHERE id = ?');
+    $stmt->execute([$cloneCost, $userId]);
 
     Logger::info('声音复刻成功，voice_id=' . $voiceId);
 

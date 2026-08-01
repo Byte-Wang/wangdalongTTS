@@ -5,14 +5,24 @@
  */
 
 require_once __DIR__ . '/../../lib/response.php';
+require_once __DIR__ . '/../../lib/db.php';
 require_once __DIR__ . '/../../lib/auth.php';
 
-// 下载不需要登录也可以，但需要验证来源
+$userId = require_auth();
+
 $filePath = $_GET['file'] ?? '';
 
-// 安全检查：防止路径穿越
-$filePath = preg_replace('/\.\./', '', $filePath);
+// 安全检查：防止路径穿越（连续两个以上的点号也一并处理）
+$filePath = preg_replace('/\.\.+/', '', $filePath);
 $fullPath = __DIR__ . '/../../' . ltrim($filePath, '/');
+
+// 验证音频文件属于当前用户
+$db   = DB::getInstance();
+$stmt = $db->prepare("SELECT id FROM audio_history WHERE user_id = ? AND audio_path = ? LIMIT 1");
+$stmt->execute([$userId, $filePath]);
+if (!$stmt->fetch()) {
+    json_error('无权访问该文件', 403);
+}
 
 if (!file_exists($fullPath)) {
     json_error('文件不存在', 404);

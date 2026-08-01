@@ -55,6 +55,5 @@ error_log("验证码发送到 {$email}: {$code}");
 
 json_success([
     'sent'    => $mailSent,
-    'code'    => $code, // 仅开发环境返回，生产应移除
     'message' => $mailSent ? '验证码已发送' : '邮件发送失败，请检查邮件服务器配置',
 ]);
