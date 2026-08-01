@@ -15,6 +15,7 @@ require_once __DIR__ . '/../../lib/response.php';
 require_once __DIR__ . '/../../lib/db.php';
 require_once __DIR__ . '/../../lib/auth.php';
 require_once __DIR__ . '/../../lib/tts_client.php';
+require_once __DIR__ . '/../../lib/logger.php';
 
 $userId = require_auth();
 $db     = DB::getInstance();
@@ -52,7 +53,7 @@ try {
     // 根据模型类型选择合成方式
     $category = getModelCategory($model);
 
-    error_log('[TTS] 开始语音合成，模型=' . $model . '，音色=' . $voice . '，文本长度=' . mb_strlen($text, 'UTF-8'));
+    Logger::info('开始语音合成，模型=' . $model . '，音色=' . $voice . '，文本长度=' . mb_strlen($text, 'UTF-8'));
     $startTime = microtime(true);
 
     if ($category === 'qwen_tts') {
@@ -63,7 +64,7 @@ try {
 
     $apiElapsed = round((microtime(true) - $startTime) * 1000);
     $audioUrl = $result['audio_url'];
-    error_log('[TTS] 阿里云合成完成，音频URL=' . $audioUrl . '，耗时=' . $apiElapsed . 'ms');
+    Logger::info('阿里云合成完成，音频URL=' . $audioUrl . '，耗时=' . $apiElapsed . 'ms');
 
     // 下载音频到本地
     $ext = $format;
@@ -72,14 +73,15 @@ try {
     }
     $fileName = 'tts_' . $userId . '_' . time() . '_' . uniqid() . '.' . $ext;
     $savePath = __DIR__ . '/../../uploads/voices/' . $fileName;
-    error_log('[TTS] 准备保存到: ' . $savePath);
+    Logger::info('准备保存到: ' . $savePath);
     $client->downloadAudio($audioUrl, $savePath);
 
     if (!file_exists($savePath)) {
+        Logger::error('文件保存后仍不存在: ' . $savePath);
         throw new RuntimeException('文件保存后仍不存在: ' . $savePath);
     }
     $fileSize = filesize($savePath);
-    error_log('[TTS] 文件确认存在，大小=' . $fileSize . '字节');
+    Logger::info('文件确认存在，大小=' . $fileSize . '字节');
 
     // 扣除积分
     $stmt = $db->prepare('UPDATE users SET points = points - ? WHERE id = ?');
@@ -98,7 +100,7 @@ try {
     $stmt->execute([$userId]);
     $remaining = $stmt->fetch();
 
-    error_log('[TTS] 全部完成，历史ID=' . $db->lastInsertId() . '，剩余积分=' . $remaining['points']);
+    Logger::info('全部完成，历史ID=' . $db->lastInsertId() . '，剩余积分=' . $remaining['points']);
 
     json_success([
         'history_id'    => (int) $db->lastInsertId(),
@@ -113,7 +115,7 @@ try {
     ], '语音合成成功');
 
 } catch (Exception $e) {
-    error_log('[TTS] 合成失败: ' . $e->getMessage());
+    Logger::error('合成失败: ' . $e->getMessage());
     json_error('语音合成失败: ' . $e->getMessage(), 500);
 }
 

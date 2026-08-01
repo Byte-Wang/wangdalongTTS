@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../config/aliyun.php';
+require_once __DIR__ . '/logger.php';
 
 class AliyunTTSClient {
     private string $apiKey;
@@ -138,27 +139,27 @@ class AliyunTTSClient {
             }
         }
 
-        error_log('[TTS] 开始下载音频: ' . $audioUrl);
+        Logger::info('开始下载音频: ' . $audioUrl);
         $startTime = microtime(true);
 
         $content = @file_get_contents($audioUrl);
         if ($content === false) {
             $error = error_get_last();
             $errMsg = $error['message'] ?? '未知错误';
-            error_log('[TTS] 音频下载失败: ' . $errMsg);
+            Logger::error('音频下载失败: ' . $errMsg);
             throw new RuntimeException('音频下载失败: ' . $errMsg);
         }
 
         $elapsed = round((microtime(true) - $startTime) * 1000);
-        error_log('[TTS] 下载完成，大小=' . strlen($content) . '字节，耗时=' . $elapsed . 'ms，保存至=' . $savePath);
+        Logger::info('下载完成，大小=' . strlen($content) . '字节，耗时=' . $elapsed . 'ms，保存至=' . $savePath);
 
         $written = file_put_contents($savePath, $content);
         if ($written === false || $written === 0) {
-            error_log('[TTS] 文件写入失败: ' . $savePath . '，请检查目录权限');
+            Logger::error('文件写入失败: ' . $savePath . '，请检查目录权限');
             throw new RuntimeException("文件写入失败: $savePath，请检查目录权限");
         }
 
-        error_log('[TTS] 文件保存成功，写入=' . $written . '字节');
+        Logger::info('文件保存成功，写入=' . $written . '字节');
     }
 
     // ---- 内部方法 ----
