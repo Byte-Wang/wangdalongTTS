@@ -2,8 +2,9 @@
   <div id="app">
     <nav class="navbar">
       <router-link to="/" class="navbar-brand">
-        <img src="/logo.png" alt="logo" width="24" height="24" />
-        DollyTTS语音合成
+        <img src="/logo.png" alt="DollyTTS AI语音合成" width="24" height="24" loading="eager" decoding="async" />
+        <span class="brand-main">DollyTTS</span>
+        <span class="brand-sub">AI语音合成</span>
       </router-link>
 
       <ul class="navbar-nav">
@@ -87,6 +88,26 @@ function onAuthSuccess() {
 </script>
 
 <style scoped>
+.navbar-brand {
+  color: #1f2937;
+  text-decoration: none;
+}
+
+.navbar-brand:hover {
+  text-decoration: none;
+}
+
+.brand-main {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.brand-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
 .points-badge {
   position: relative;
   cursor: pointer;

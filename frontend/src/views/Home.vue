@@ -1,6 +1,9 @@
 <template>
+<div class="page-root">
+  <div class="page-bg"></div>
   <div class="page-container">
     <h1 class="page-title">语音合成</h1>
+    <p class="page-subtitle">将文字转为自然流畅的语音，支持多种音色和TTS模型</p>
 
     <div class="synthesize-grid">
       <!-- 左侧：音色 & 模型选择 -->
@@ -126,6 +129,7 @@
     <!-- 登录弹窗 -->
     <AuthModal :visible="showAuthModal" @close="showAuthModal = false" @success="onAuthSuccess" />
   </div>
+</div>
 </template>
 
 <script setup>
@@ -254,3 +258,38 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.page-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-color: #eaeffb;
+  background-image: url('/背景.png');
+  background-repeat: no-repeat;
+  background-position: right top;
+  background-size: 1100px;
+}
+
+.page-container {
+  background: transparent;
+}
+
+.page-title {
+  font-size: 44px;
+}
+
+.page-subtitle {
+  margin-top: -12px;
+  margin-bottom: 28px;
+  font-size: 15px;
+  color: #8899b4;
+}
+
+.synthesize-grid {
+  margin-top: 32px;
+}
+</style>

@@ -1,300 +1,378 @@
 <template>
   <div class="welcome">
-    <!-- Hero 区域 -->
     <section class="hero">
-      <div class="hero-content">
-        <div class="hero-icon">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 18v-6a9 9 0 0118 0v6"/>
-            <path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
-          </svg>
-        </div>
-        <h1 class="hero-title">DollyTTS语音合成</h1>
-        <p class="hero-subtitle">
-          基于阿里云强大的 AI 语音技术，将文字转化为自然流畅的语音，<br/>
-          支持多种音色选择和声音复刻功能。
-        </p>
-        <router-link to="/tts" class="hero-btn">
-          开始语音合成
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </router-link>
-      </div>
-      <div class="hero-visual">
-        <!-- 装饰性声波动画 -->
-        <div class="audio-wave">
-          <span v-for="i in 12" :key="i" class="wave-bar" :style="{ animationDelay: (i * 0.08) + 's', height: (20 + Math.sin(i * 1.2) * 20 + Math.random() * 30) + 'px' }"></span>
-        </div>
-        <div class="audio-wave wave-2">
-          <span v-for="i in 12" :key="i" class="wave-bar" :style="{ animationDelay: (i * 0.1 + 0.3) + 's', height: (15 + Math.cos(i * 0.9) * 18 + Math.random() * 25) + 'px' }"></span>
+      <div class="hero-shell">
+        <div class="hero-copy">
+          <div class="hero-brand">
+            <img src="/logo.png" alt="DollyTTS AI语音合成" class="hero-brand-icon" loading="eager" decoding="async" />
+            <span>DollyTTS 语音合成</span>
+          </div>
+
+          <h1 class="hero-title">
+            <span class="hero-title-accent">DollyTTS</span>
+            <span>语音合成</span>
+          </h1>
+
+          <p class="hero-subtitle">
+            基于阿里云强大的 AI 语音技术，将文字转化为自然流畅的语音，
+            支持多音色选择、声音复刻和多模型生成。
+          </p>
+
+          <div class="hero-actions">
+            <router-link to="/tts" class="hero-btn hero-btn-primary">
+              开始
+            </router-link>
+            <router-link to="/voices" class="hero-btn hero-btn-secondary">
+              声音复刻
+            </router-link>
+          </div>
+
+          <div class="bonus-card">
+            <div class="bonus-copy">
+              <strong>注册即送 500 积分</strong>
+              <span>可免费生成 500 字语音</span>
+            </div>
+            <img src="/礼物盒.png" alt="注册福利" class="bonus-gift" />
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 功能卡片 -->
     <section class="features">
-      <h2 class="section-title">核心功能</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
-              <path d="M19 10v2a7 7 0 01-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
-          </div>
-          <h3>多音色语音合成</h3>
-          <p>支持多种预设音色，涵盖男女声、不同年龄段和语言，输入文字即可生成自然语音。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </div>
-          <h3>声音复刻</h3>
-          <p>上传或录制一小段音频，即可克隆专属音色，让 AI 用你的声音说话。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <line x1="3" y1="9" x2="21" y2="9"/>
-              <line x1="9" y1="21" x2="9" y2="9"/>
-            </svg>
-          </div>
-          <h3>生成历史管理</h3>
-          <p>所有合成记录自动保存，方便随时回听和下载，支持历史记录浏览。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-            </svg>
-          </div>
-          <h3>多模型支持</h3>
-          <p>集成 CosyVoice、Qwen Audio TTS 等多个主流 TTS 模型，满足不同场景需求。</p>
+      <div
+        v-for="feature in features"
+        :key="feature.title"
+        class="feature-card"
+      >
+        <img :src="feature.image" :alt="feature.title" class="feature-icon" loading="lazy" decoding="async" />
+        <div class="feature-text">
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
         </div>
       </div>
-    </section>
-
-    <!-- 底部 CTA -->
-    <section class="cta">
-      <h2>准备好了吗？</h2>
-      <p>免费体验 AI 语音合成的魅力，即刻开始创作</p>
-      <router-link to="/tts" class="hero-btn">开始使用</router-link>
     </section>
   </div>
 </template>
 
 <script setup>
-// Welcome 页面，纯展示，无需逻辑
+const features = [
+  {
+    title: '多音色语音合成',
+    description: '支持多种预设音色，温柔男女声、不同年龄段和语言，输入文字即可生成自然语音。',
+    image: '/语音合成.png',
+  },
+  {
+    title: '声音复刻',
+    description: '上传或录制一小段音频，即可克隆专属音色，让 AI 用你的声音说话。',
+    image: '/声音复刻.png',
+  },
+  {
+    title: '多模型支持',
+    description: '集成 CosyVoice、Qwen Audio TTS 等多个主流 TTS 模型，满足不同场景需求。',
+    image: '/多模型.png',
+  },
+]
 </script>
 
 <style scoped>
 .welcome {
   min-height: calc(100vh - 56px);
+  padding: 32px 24px 56px;
+  background:
+    linear-gradient(180deg, rgba(247, 250, 255, 0.92) 0%, rgba(241, 245, 255, 0.96) 100%),
+    #f4f7fd;
 }
 
-/* Hero */
 .hero {
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.hero-shell {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 60px;
-  padding: 80px 40px 60px;
-  max-width: 1000px;
-  margin: 0 auto;
-  min-height: 450px;
+  min-height: 620px;
+  padding: 72px 56px 120px;
+  border-radius: 32px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(243, 247, 255, 0.96) 0%, rgba(243, 247, 255, 0.84) 30%, rgba(243, 247, 255, 0.45) 48%, rgba(243, 247, 255, 0.12) 72%, rgba(243, 247, 255, 0.04) 100%),
+    url('/首页背景.png') center/cover no-repeat;
+  box-shadow: 0 24px 60px rgba(58, 95, 168, 0.12);
 }
 
-.hero-content {
-  flex: 0 0 auto;
-  text-align: center;
+.hero-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 76%, rgba(157, 200, 255, 0.2), transparent 32%),
+    radial-gradient(circle at 85% 18%, rgba(116, 164, 255, 0.22), transparent 24%);
+  pointer-events: none;
 }
 
-.hero-icon {
+.hero-copy,
+.features {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-copy {
+  max-width: 520px;
+}
+
+.hero-brand {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 88px;
-  height: 88px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #1a73e8, #4f9cf8);
-  color: #fff;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 30px rgba(26, 115, 232, 0.3);
+  gap: 10px;
+  margin-bottom: 26px;
+  color: #2f4c84;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.hero-brand-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
 .hero-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, var(--text, #1f2937) 30%, var(--primary, #1a73e8));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 22px;
+  color: #1d2d55;
+  font-size: clamp(40px, 5vw, 62px);
+  line-height: 1.08;
+  font-weight: 800;
+}
+
+.hero-title-accent {
+  color: #2b6ef5;
 }
 
 .hero-subtitle {
-  font-size: 16px;
-  color: var(--text-secondary);
-  line-height: 1.8;
-  margin-bottom: 32px;
+  max-width: 520px;
+  margin-bottom: 34px;
+  color: #4d6289;
+  font-size: 18px;
+  line-height: 1.9;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
 .hero-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 15px 36px;
-  background: linear-gradient(135deg, #1a73e8, #4f9cf8);
-  color: #fff;
-  border-radius: 40px;
+  justify-content: center;
+  min-width: 148px;
+  padding: 15px 34px;
+  border-radius: 999px;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
-  transition: all 0.3s;
-  box-shadow: 0 4px 20px rgba(26, 115, 232, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
+
 .hero-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(26, 115, 232, 0.45);
   text-decoration: none;
 }
 
-/* 声波动画 */
-.hero-visual {
+.hero-btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #2d72ff, #629cff);
+  box-shadow: 0 14px 30px rgba(45, 114, 255, 0.28);
+}
+
+.hero-btn-primary:hover {
+  box-shadow: 0 18px 36px rgba(45, 114, 255, 0.34);
+}
+
+.hero-btn-secondary {
+  color: #2f63d8;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(126, 166, 255, 0.42);
+  box-shadow: 0 10px 24px rgba(86, 118, 179, 0.12);
+}
+
+.bonus-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 22px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(61, 130, 255, 0.96), rgba(111, 98, 255, 0.92));
+  box-shadow: 0 18px 36px rgba(82, 112, 219, 0.24);
+}
+
+.bonus-copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  opacity: 0.6;
-}
-
-.audio-wave {
-  display: flex;
-  align-items: center;
   gap: 4px;
+  color: #fff;
 }
 
-.wave-bar {
-  width: 3px;
-  background: linear-gradient(to top, #1a73e8, #4f9cf8);
-  border-radius: 2px;
-  animation: wave 1.2s ease-in-out infinite alternate;
+.bonus-copy strong {
+  font-size: 18px;
+  font-weight: 800;
 }
 
-.wave-2 .wave-bar {
-  animation-direction: alternate-reverse;
-  opacity: 0.5;
+.bonus-copy span {
+  font-size: 14px;
+  opacity: 0.92;
 }
 
-@keyframes wave {
-  from { transform: scaleY(0.3); }
-  to { transform: scaleY(1); }
+.bonus-gift {
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
 }
 
-/* Features */
 .features {
-  padding: 60px 40px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.section-title {
-  text-align: center;
-  font-size: 26px;
-  font-weight: 600;
-  margin-bottom: 40px;
-}
-
-.feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 1220px;
+  margin: -68px auto 0;
 }
 
 .feature-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 180px;
   padding: 28px 24px;
-  text-align: center;
-  transition: all 0.3s;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(224, 233, 248, 0.9);
+  box-shadow: 0 16px 36px rgba(87, 116, 171, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+
 .feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  border-color: var(--primary);
+  box-shadow: 0 24px 44px rgba(87, 116, 171, 0.14);
 }
 
 .feature-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  background: var(--primary-light);
-  color: var(--primary);
-  margin-bottom: 16px;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
-.feature-card h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-.feature-card p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* CTA */
-.cta {
-  text-align: center;
-  padding: 60px 40px 80px;
-  background: linear-gradient(180deg, transparent, var(--primary-bg) 60%);
-}
-
-.cta h2 {
+.feature-text h3 {
+  margin-bottom: 12px;
+  color: #253b65;
   font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 10px;
+  font-weight: 700;
 }
 
-.cta p {
+.feature-text p {
+  color: #5e6f8d;
   font-size: 15px;
-  color: var(--text-secondary);
-  margin-bottom: 28px;
+  line-height: 1.9;
 }
 
-/* 响应式 */
-@media (max-width: 768px) {
-  .hero {
-    flex-direction: column;
-    padding: 40px 20px;
-    gap: 30px;
-    text-align: center;
+@media (max-width: 1100px) {
+  .welcome {
+    padding: 20px 16px 40px;
   }
-  .hero-title {
-    font-size: 28px;
+
+  .hero-shell {
+    min-height: auto;
+    padding: 44px 24px 120px;
   }
-  .hero-visual {
-    display: none;
+
+  .hero-copy {
+    max-width: none;
   }
+
   .features {
-    padding: 40px 20px;
-  }
-  .feature-grid {
     grid-template-columns: 1fr;
+    margin-top: -84px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-shell {
+    padding: 32px 18px 112px;
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(243, 247, 255, 0.96) 0%, rgba(243, 247, 255, 0.86) 40%, rgba(243, 247, 255, 0.7) 100%),
+      url('/首页背景.png') 68% center/cover no-repeat;
+  }
+
+  .hero-brand {
+    margin-bottom: 20px;
+    font-size: 15px;
+  }
+
+  .hero-title {
+    font-size: 34px;
+    gap: 6px;
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    gap: 10px;
+  }
+
+  .hero-btn {
+    min-width: 124px;
+    padding: 13px 24px;
+    font-size: 15px;
+  }
+
+  .bonus-card {
+    width: 100%;
+    justify-content: space-between;
+    padding: 16px 18px;
+  }
+
+  .bonus-copy strong {
+    font-size: 16px;
+  }
+
+  .bonus-copy span {
+    font-size: 13px;
+  }
+
+  .bonus-gift {
+    width: 60px;
+    height: 60px;
+  }
+
+  .features {
+    gap: 16px;
+    margin-top: -92px;
+  }
+
+  .feature-card {
+    min-height: auto;
+    padding: 22px 18px;
+  }
+
+  .feature-text h3 {
+    font-size: 18px;
+  }
+
+  .feature-text p {
+    font-size: 14px;
+    line-height: 1.7;
   }
 }
 </style>
