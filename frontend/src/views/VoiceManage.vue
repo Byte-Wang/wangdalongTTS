@@ -105,6 +105,9 @@
       <p>还没有创建克隆音色</p>
       <p style="font-size:12px;margin-top:4px">点击上方按钮开始声音复刻</p>
     </div>
+
+    <!-- 登录弹窗 -->
+    <AuthModal :visible="showAuthModal" @close="showAuthModal = false" @success="onAuthSuccess" />
   </div>
 </template>
 
@@ -112,6 +115,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useTTSStore } from '../stores/tts'
 import { useAuthStore } from '../stores/auth'
+import AuthModal from '../components/AuthModal.vue'
 
 const ttsStore = useTTSStore()
 const authStore = useAuthStore()
@@ -119,6 +123,7 @@ const showClonePanel = ref(false)
 const cloning = ref(false)
 const cloneError = ref('')
 const fileInputRef = ref(null)
+const showAuthModal = ref(false)
 
 const cloneForm = reactive({ name: '', model: '', text: '', file: null })
 
@@ -133,7 +138,6 @@ let recordTimer = null
 
 const cloneModels = computed(() => {
   const m = ttsStore.systemVoices.models || []
-  // 过滤掉没有 voice-enrollment 能力的模型
   return m.filter(m => ['qwen_audio_tts', 'cosyvoice', 'qwen_tts'].includes(m.category))
 })
 
@@ -144,7 +148,7 @@ const canClone = computed(() => {
   return cloneForm.name && cloneForm.model && cloneForm.text && (cloneForm.file || recordedBlob.value)
 })
 
-// WebM → WAV 转换（浏览器录音为 WebM，后端仅支持 WAV/MP3/M4A）
+// WebM → WAV 转换
 function writeString(view, offset, str) {
   for (let i = 0; i < str.length; i++) {
     view.setUint8(offset + i, str.charCodeAt(i))
@@ -165,20 +169,17 @@ async function webmToWav(blob) {
   const buffer = new ArrayBuffer(44 + dataLength)
   const view = new DataView(buffer)
 
-  // RIFF header
   writeString(view, 0, 'RIFF')
   view.setUint32(4, 36 + dataLength, true)
   writeString(view, 8, 'WAVE')
-  // fmt chunk
   writeString(view, 12, 'fmt ')
-  view.setUint32(16, 16, true)          // chunk size
-  view.setUint16(20, 1, true)           // PCM format
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
   view.setUint16(22, numChannels, true)
   view.setUint32(24, sampleRate, true)
   view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true)
   view.setUint16(32, numChannels * bitsPerSample / 8, true)
   view.setUint16(34, bitsPerSample, true)
-  // data chunk
   writeString(view, 36, 'data')
   view.setUint32(40, dataLength, true)
 
@@ -192,10 +193,8 @@ async function webmToWav(blob) {
   return new Blob([buffer], { type: 'audio/wav' })
 }
 
-// 录音
 async function startRecording() {
   try {
-    // 检查浏览器是否支持录音
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert('当前浏览器不支持录音功能，请使用 Chrome、Edge 或 Firefox，并确保已配置 HTTPS')
       return
@@ -240,10 +239,8 @@ function retryRecord() {
 }
 
 async function useRecordedAudio() {
-  // 将 WebM 录音转为 WAV 格式（后端仅支持 WAV/MP3/M4A）
   const wavBlob = await webmToWav(recordedBlob.value)
   cloneForm.file = new File([wavBlob], 'recording.wav', { type: 'audio/wav' })
-  // 清除录音预览UI，显示文件选择状态
   recordedBlob.value = null
   recordedAudioUrl.value = ''
 }
@@ -255,6 +252,12 @@ function onFileChange(e) {
 }
 
 async function doClone() {
+  // 未登录时弹出登录弹窗
+  if (!authStore.isLoggedIn) {
+    showAuthModal.value = true
+    return
+  }
+
   if (!confirm('声音复刻成功后将扣除 50 积分，是否确认开始复刻？')) return
 
   cloneError.value = ''
@@ -265,9 +268,7 @@ async function doClone() {
     fd.append('model', cloneForm.model)
     fd.append('audio_file', cloneForm.file)
     await ttsStore.cloneVoice(fd)
-    // 刷新用户积分
     await authStore.fetchProfile()
-    // 重置表单
     cloneForm.name = ''
     cloneForm.file = null
     cloneForm.model = cloneModels.value.length > 0 ? cloneModels.value[0].key : ''
@@ -280,6 +281,12 @@ async function doClone() {
   } finally {
     cloning.value = false
   }
+}
+
+function onAuthSuccess() {
+  showAuthModal.value = false
+  // 登录成功后刷新音色列表
+  ttsStore.fetchUserVoices().catch(() => {})
 }
 
 async function doDelete(id) {
@@ -295,8 +302,9 @@ function formatTime(t) {
 onMounted(async () => {
   try {
     await ttsStore.fetchSystemVoices()
-    await ttsStore.fetchUserVoices()
-    // 默认选中第一个模型
+    if (authStore.isLoggedIn) {
+      await ttsStore.fetchUserVoices()
+    }
     if (cloneModels.value.length > 0 && !cloneForm.model) {
       cloneForm.model = cloneModels.value[0].key
     }

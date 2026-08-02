@@ -4,7 +4,7 @@
 
     <div v-if="ttsStore.history.list.length === 0 && !loading" class="card empty-state">
       <p>暂无生成记录</p>
-      <p style="font-size:12px;margin-top:4px">前往 <router-link to="/">语音合成</router-link> 开始使用</p>
+      <p style="font-size:12px;margin-top:4px">前往 <router-link to="/tts">语音合成</router-link> 开始使用</p>
     </div>
 
     <div v-else class="card">

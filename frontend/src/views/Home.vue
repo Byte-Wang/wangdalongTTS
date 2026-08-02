@@ -75,7 +75,7 @@
             <textarea v-model="inputText" class="input" rows="6" placeholder="请输入要转为语音的文本内容..."></textarea>
             <div class="form-hint flex justify-between">
               <span>{{ textCharCount }} 字（预计消耗 {{ estimatedCost }} 积分）</span>
-              <span>可用积分：{{ auth.points }}</span>
+              <span v-if="auth.isLoggedIn">可用积分：{{ auth.points }}</span>
             </div>
           </div>
 
@@ -110,7 +110,7 @@
               下载音频
             </button>
             <router-link to="/history" class="btn btn-outline btn-sm">查看全部历史</router-link>
-            <span style="font-size:12px;color:var(--text-secondary);align-self:center;margin-left:auto">
+            <span v-if="auth.isLoggedIn" style="font-size:12px;color:var(--text-secondary);align-self:center;margin-left:auto">
               剩余 {{ result.points_remain }} 积分
             </span>
           </div>
@@ -122,6 +122,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 登录弹窗 -->
+    <AuthModal :visible="showAuthModal" @close="showAuthModal = false" @success="onAuthSuccess" />
   </div>
 </template>
 
@@ -129,7 +132,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useTTSStore } from '../stores/tts'
-import api from '../api'
+import AuthModal from '../components/AuthModal.vue'
 
 const auth = useAuthStore()
 const ttsStore = useTTSStore()
@@ -141,6 +144,7 @@ const activeCloneModel = ref('')
 const inputText = ref('')
 const result = ref(null)
 const errorMsg = ref('')
+const showAuthModal = ref(false)
 
 const models = computed(() => ttsStore.systemVoices.models || [])
 const userVoices = computed(() => ttsStore.userVoices)
@@ -151,19 +155,16 @@ const currentModelVoices = computed(() => {
 })
 
 const selectedVoiceDisplay = computed(() => {
-  // 系统音色
   const m = models.value.find(m => m.key === selectedModel.value)
   if (m) {
     const v = m.voices.find(v => v.voice_id === selectedVoice.value)
     if (v) return v.name
   }
-  // 克隆音色
   const cv = userVoices.value.find(v => v.voice_id === selectedVoice.value)
   if (cv) return cv.name
   return selectedVoice.value
 })
 
-// 计算字数（中文1字=1，英文半角按0.5折算）
 const textCharCount = computed(() => {
   return inputText.value.length
 })
@@ -173,7 +174,6 @@ const estimatedCost = computed(() => {
   let cost = 0
   for (const ch of text) {
     const code = ch.charCodeAt(0)
-    // 中文字符、全角标点
     if (code > 127 || (code >= 0xFF01 && code <= 0xFF60) || (code >= 0x3000 && code <= 0x303F)) {
       cost += 1
     } else if (ch !== ' ' && ch !== '\n') {
@@ -186,8 +186,7 @@ const estimatedCost = computed(() => {
 const canSynthesize = computed(() => {
   return !ttsStore.synthesizing &&
     selectedVoice.value &&
-    inputText.value.trim() &&
-    estimatedCost.value <= auth.points
+    inputText.value.trim()
 })
 
 function onModelChange() {
@@ -200,6 +199,12 @@ function selectCloneVoice(v) {
 }
 
 async function doSynthesize() {
+  // 未登录时弹出登录弹窗
+  if (!auth.isLoggedIn) {
+    showAuthModal.value = true
+    return
+  }
+
   const model = voiceSource.value === 'clone' ? activeCloneModel.value : selectedModel.value
   if (!model) {
     errorMsg.value = '请先选择模型'
@@ -216,12 +221,17 @@ async function doSynthesize() {
     })
     result.value = data
     errorMsg.value = ''
-    // 刷新积分
     await auth.fetchProfile()
   } catch (e) {
     errorMsg.value = '合成失败：' + e.message
     console.error('[TTS] 合成失败', e)
   }
+}
+
+function onAuthSuccess() {
+  showAuthModal.value = false
+  // 登录成功后自动刷新音色列表
+  ttsStore.fetchUserVoices().catch(() => {})
 }
 
 function downloadAudio() {
@@ -236,7 +246,9 @@ function downloadAudio() {
 onMounted(async () => {
   try {
     await ttsStore.fetchSystemVoices()
-    await ttsStore.fetchUserVoices()
+    if (auth.isLoggedIn) {
+      await ttsStore.fetchUserVoices()
+    }
   } catch (e) {
     // 静默失败
   }

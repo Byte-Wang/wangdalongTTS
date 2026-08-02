@@ -3,13 +3,13 @@
     <nav class="navbar">
       <router-link to="/" class="navbar-brand">
         <img src="/logo.png" alt="logo" width="24" height="24" />
-        王大龙语音合成工具
+        DollyTTS语音合成
       </router-link>
 
-      <ul v-if="auth.isLoggedIn" class="navbar-nav">
-        <li><router-link to="/">语音合成</router-link></li>
+      <ul class="navbar-nav">
+        <li><router-link to="/tts">语音合成</router-link></li>
         <li><router-link to="/voices">音色管理</router-link></li>
-        <li><router-link to="/history">生成历史</router-link></li>
+        <li v-if="auth.isLoggedIn"><router-link to="/history">生成历史</router-link></li>
       </ul>
 
       <div class="navbar-actions">
@@ -20,7 +20,6 @@
               <text x="12" y="16" text-anchor="middle" font-size="10" fill="white" font-weight="bold">积</text>
             </svg>
             {{ auth.points }} 积分
-            <!-- 积分气泡卡片 -->
             <div v-if="showPointsPopover" class="points-popover" @click.stop>
               <div class="popover-arrow"></div>
               <p class="popover-text">项目内测中，暂不提供充值功能</p>
@@ -32,8 +31,8 @@
           <button class="btn btn-outline btn-sm" @click="logout">退出</button>
         </template>
         <template v-else>
-          <router-link to="/login" class="btn btn-outline btn-sm">登录</router-link>
-          <router-link to="/register" class="btn btn-primary btn-sm">注册</router-link>
+          <button class="btn btn-outline btn-sm" @click="showAuthModal = true">登录</button>
+          <button class="btn btn-primary btn-sm" @click="showAuthModal = true">注册</button>
         </template>
       </div>
     </nav>
@@ -41,6 +40,9 @@
     <main>
       <router-view />
     </main>
+
+    <!-- 全局登录/注册弹窗 -->
+    <AuthModal :visible="showAuthModal" @close="showAuthModal = false" @success="onAuthSuccess" />
   </div>
 </template>
 
@@ -48,11 +50,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
+import AuthModal from './components/AuthModal.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
 
 const showPointsPopover = ref(false)
+const showAuthModal = ref(false)
 
 function togglePointsPopover() {
   showPointsPopover.value = !showPointsPopover.value
@@ -74,7 +78,11 @@ onUnmounted(() => {
 
 function logout() {
   auth.clearAuth()
-  router.push('/login')
+  router.push('/')
+}
+
+function onAuthSuccess() {
+  showAuthModal.value = false
 }
 </script>
 

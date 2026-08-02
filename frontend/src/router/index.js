@@ -3,9 +3,15 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
+    name: 'Welcome',
+    component: () => import('../views/Welcome.vue'),
+    meta: { title: 'DollyTTS语音合成 - AI语音合成 | AI声音克隆' },
+  },
+  {
+    path: '/tts',
     name: 'Home',
     component: () => import('../views/Home.vue'),
-    meta: { title: '语音合成', requiresAuth: true },
+    meta: { title: '语音合成 - AI文字转语音在线生成' },
   },
   {
     path: '/login',
@@ -23,7 +29,7 @@ const routes = [
     path: '/voices',
     name: 'VoiceManage',
     component: () => import('../views/VoiceManage.vue'),
-    meta: { title: '音色管理', requiresAuth: true },
+    meta: { title: 'AI声音克隆 - 在线复刻声音 | 克隆声音' },
   },
   {
     path: '/history',
@@ -39,11 +45,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title + ' - 语音合成平台'
+  document.title = to.meta.title
   const token = localStorage.getItem('token')
 
   if (to.meta.requiresAuth && !token) {
-    next('/login')
+    next('/')
   } else if (to.meta.guest && token) {
     next('/')
   } else {
